@@ -232,14 +232,16 @@ export default function App() {
     
     const project = projects.find(p => p.id === id);
     if (project) {
+        const isMobile = window.innerWidth < 768;
+        const availableWidth = window.innerWidth - (isMobile ? 48 : 0);
         const newWindow = {
             id,
             title: project.name,
             icon: project.icon,
             zIndex: nextZIndex,
-            position: { x: Math.random() * 200 + 50, y: Math.random() * 100 + 20 },
+            position: { x: Math.random() * (availableWidth * 0.1) + 20, y: Math.random() * 100 + 20 },
             size: {
-              width: Math.min(window.innerWidth * 0.7, id === 'terminal' ? 700 : (id === 'login' ? 500 : (id === 'admin-panel' ? 1024 : 960))), 
+              width: Math.min(availableWidth * 0.8, id === 'terminal' ? 700 : (id === 'login' ? 500 : (id === 'admin-panel' ? 1024 : 960))),
               height: window.innerHeight * (id === 'terminal' ? 0.5 : (id === 'login' ? 0.6 : 0.7)),
             },
             isMaximized: false,
@@ -266,12 +268,15 @@ export default function App() {
           if (w.isMaximized) {
               return { ...w, ...w.preMaximizedState, isMaximized: false, preMaximizedState: null };
           } else {
-              const taskbarHeight = 48;
+              const mainEl = document.querySelector('main');
+              if (!mainEl) return w; // Should not happen
+              const rect = mainEl.getBoundingClientRect();
+
               return {
                   ...w,
                   preMaximizedState: { position: w.position, size: w.size },
                   position: { x: 0, y: 0 },
-                  size: { width: window.innerWidth, height: window.innerHeight - taskbarHeight },
+                  size: { width: rect.width, height: rect.height },
                   isMaximized: true,
               };
           }
@@ -340,6 +345,7 @@ export default function App() {
         if (!activeActionRef.current) return;
         
         const { id, action, direction, startPos, startRect } = activeActionRef.current;
+        const mainEl = document.querySelector('main');
 
         if (action === 'drag') {
             const newPosition = {
@@ -347,25 +353,24 @@ export default function App() {
                 y: startRect.y + (e.clientY - startPos.y),
             };
 
-            const SNAP_EDGE_THRESHOLD = 5;
-            const screenW = window.innerWidth;
-            const screenH = window.innerHeight;
-            const taskbarHeight = 48;
-            const availableH = screenH - taskbarHeight;
-            let newSnapPreview = null;
-            
-            const atTopEdge = e.clientY <= SNAP_EDGE_THRESHOLD;
-            const atLeftEdge = e.clientX <= SNAP_EDGE_THRESHOLD;
-            const atRightEdge = e.clientX >= screenW - SNAP_EDGE_THRESHOLD;
+            if (mainEl) {
+                const rect = mainEl.getBoundingClientRect();
+                const SNAP_EDGE_THRESHOLD = 5;
+                let newSnapPreview = null;
 
-            if (atTopEdge) {
-                newSnapPreview = { x: 0, y: 0, width: screenW, height: availableH, snapType: 'maximized' };
-            } else if (atLeftEdge) {
-                newSnapPreview = { x: 0, y: 0, width: Math.ceil(screenW / 2), height: availableH, snapType: 'side' };
-            } else if (atRightEdge) {
-                newSnapPreview = { x: Math.floor(screenW / 2), y: 0, width: Math.floor(screenW / 2), height: availableH, snapType: 'side' };
+                const atTopEdge = e.clientY <= rect.top + SNAP_EDGE_THRESHOLD;
+                const atLeftEdge = e.clientX <= rect.left + SNAP_EDGE_THRESHOLD;
+                const atRightEdge = e.clientX >= rect.right - SNAP_EDGE_THRESHOLD;
+
+                if (atTopEdge) {
+                    newSnapPreview = { x: 0, y: 0, width: rect.width, height: rect.height, snapType: 'maximized' };
+                } else if (atLeftEdge) {
+                    newSnapPreview = { x: 0, y: 0, width: Math.ceil(rect.width / 2), height: rect.height, snapType: 'side' };
+                } else if (atRightEdge) {
+                    newSnapPreview = { x: Math.floor(rect.width / 2), y: 0, width: Math.floor(rect.width / 2), height: rect.height, snapType: 'side' };
+                }
+                setSnapPreview(newSnapPreview);
             }
-            setSnapPreview(newSnapPreview);
             
             setWindows(prev => prev.map(w => w.id === id ? { ...w, position: newPosition, isMaximized: false } : w));
         } else if (action === 'resize') {
@@ -467,7 +472,7 @@ export default function App() {
                     className={`fixed inset-0 -z-10 transition-all duration-500 ${!settings?.wallpaperUrl ? 'gradient-bg' : ''}`}
                     style={desktopBackgroundStyle}
                 ></div>
-                <main className="flex-grow h-full w-full relative">
+                <main className="flex-grow h-full w-full relative pl-12 md:pl-0">
                 <Desktop 
                     onOpen={openWindow} 
                     projects={projects.filter(p => {

@@ -28,8 +28,8 @@ const Taskbar = ({ openWindows, onFocus, activeWindow, onOpen, settings }) => {
   const initials = settings?.fullName?.split(' ').map(n => n[0]).join('').substring(0, 2) || 'OS';
 
   return (
-    <footer className="h-12 bg-slate-200/70 dark:bg-slate-900/50 backdrop-blur-lg flex items-center justify-between px-2 gap-2 border-t border-slate-300/50 dark:border-slate-700/50 w-full flex-shrink-0 z-[100000]">
-      <div className="flex items-center gap-2">
+    <footer className="fixed top-0 left-0 h-screen w-12 p-2 border-r md:relative md:h-12 md:w-full md:p-0 md:px-2 md:border-r-0 md:border-t bg-slate-200/70 dark:bg-slate-900/50 backdrop-blur-lg flex flex-col md:flex-row items-center justify-between gap-2 border-slate-300/50 dark:border-slate-700/50 flex-shrink-0 z-[100000]">
+      <div className="flex flex-col md:flex-row items-center gap-2">
         <div ref={menuRef} className="relative">
              <button
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -42,9 +42,9 @@ const Taskbar = ({ openWindows, onFocus, activeWindow, onOpen, settings }) => {
             {isMenuOpen && <StartMenu onOpen={onOpen} onClose={() => setIsMenuOpen(false)} />}
         </div>
 
-        <div className="h-8 border-l border-slate-400/50 dark:border-slate-600/50"></div>
+        <div className="w-8 border-t md:h-8 md:w-auto md:border-t-0 md:border-l border-slate-400/50 dark:border-slate-600/50"></div>
         
-        <div className="flex items-center gap-1">
+        <div className="flex flex-col md:flex-row items-center gap-1">
             {openWindows.map(win => {
                 const Icon = Lucide[win.icon] || Lucide.Folder;
                 const isActive = win.id === activeWindow;
@@ -52,7 +52,7 @@ const Taskbar = ({ openWindows, onFocus, activeWindow, onOpen, settings }) => {
                     <button 
                         key={win.id}
                         onClick={() => onFocus(win.id)}
-                        className={`px-3 py-1.5 flex items-center gap-2 rounded-md text-sm transition-colors ${isActive ? 'bg-black/10 dark:bg-white/10' : 'hover:bg-black/10 dark:hover:bg-white/10'}`}
+                        className={`p-2 md:px-3 md:py-1.5 flex items-center gap-2 rounded-md text-sm transition-colors ${isActive ? 'bg-black/10 dark:bg-white/10' : 'hover:bg-black/10 dark:hover:bg-white/10'}`}
                         title={win.title}
                     >
                        <Icon size={16} /> 
@@ -62,10 +62,10 @@ const Taskbar = ({ openWindows, onFocus, activeWindow, onOpen, settings }) => {
         </div>
       </div>
 
-      <div className="flex items-center gap-3">
+      <div className="flex flex-col md:flex-row items-center gap-3">
         <div className="text-xs text-center text-slate-700 dark:text-slate-300">
             <div>{time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
-            <div>{time.toLocaleDateString([], { month: '2-digit', day: '2-digit', year: 'numeric' })}</div>
+            <div className="hidden md:block">{time.toLocaleDateString([], { month: '2-digit', day: '2-digit', year: 'numeric' })}</div>
         </div>
         <button
           onClick={toggleTheme}
