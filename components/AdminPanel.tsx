@@ -232,8 +232,8 @@ const ProjectEditor = ({ projects, onUpdateProject, onCreateProject }) => {
   const currentProjectForDisplay = selectedProjectId === 'new' ? formData : projects.find(p => p.id === selectedProjectId);
 
   return (
-    <div className="flex h-full">
-      <aside className="w-1/3 max-w-xs bg-slate-200/50 dark:bg-slate-900/30 p-2 border-r border-slate-300 dark:border-slate-700 overflow-y-auto flex flex-col">
+    <div className="flex flex-col md:flex-row h-full">
+      <aside className="w-full md:w-1/3 md:max-w-xs h-48 md:h-auto bg-slate-200/50 dark:bg-slate-900/30 p-2 border-b md:border-r md:border-b-0 border-slate-300 dark:border-slate-700 overflow-y-auto flex flex-col">
         <h2 className="font-bold p-2 text-base text-primary">Projects</h2>
         <ul className="flex-grow">
           {editableProjects.map(p => (
@@ -341,14 +341,14 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ projects, onUpdateProject, onCr
   };
 
   return (
-    <div className="flex h-full text-sm">
-      <aside className="w-1/3 max-w-56 bg-slate-200 dark:bg-slate-900/50 p-2 border-r border-slate-300 dark:border-slate-700 flex flex-col">
-        <nav className="flex-grow space-y-1">
+    <div className="flex flex-col md:flex-row h-full text-sm">
+      <aside className="w-full md:w-1/3 md:max-w-56 bg-slate-200 dark:bg-slate-900/50 p-2 border-b md:border-r md:border-b-0 border-slate-300 dark:border-slate-700 flex flex-col">
+        <nav className="flex-grow flex flex-row md:flex-col md:space-y-1 justify-around md:justify-start">
             <NavItem label="Projects" icon={FolderKanban} isActive={activeView==='projects'} onClick={() => setActiveView('projects')} />
             <NavItem label="Portfolio Settings" icon={Settings} isActive={activeView==='settings'} onClick={() => setActiveView('settings')} />
             <NavItem label="Theme Editor" icon={Palette} isActive={activeView==='theme'} onClick={() => setActiveView('theme')} />
         </nav>
-        <div className="p-1 border-t border-slate-300 dark:border-slate-700">
+        <div className="p-1 border-t border-slate-300 dark:border-slate-700 mt-2 md:mt-0">
             <button onClick={handleLogout} className="w-full flex items-center justify-center gap-2 p-2 rounded-md transition-colors bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white font-semibold">
                 <LogOut size={16} /> Log Out
             </button>

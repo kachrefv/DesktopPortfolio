@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, createContext, useMemo, useCallback, useRef } from 'react';
 import { systemProjects } from './data';
 import Desktop from './components/Desktop';
@@ -58,6 +59,21 @@ export const SettingsContext = createContext(null);
 const MIN_WIDTH = 400;
 const MIN_HEIGHT = 300;
 
+const useMediaQuery = (query: string) => {
+  const [matches, setMatches] = React.useState(
+    () => window.matchMedia(query).matches
+  );
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia(query);
+    const handler = (event: MediaQueryListEvent) => setMatches(event.matches);
+    mediaQuery.addEventListener('change', handler);
+    return () => mediaQuery.removeEventListener('change', handler);
+  }, [query]);
+
+  return matches;
+};
+
 export default function App() {
   const [isCheckingSetup, setIsCheckingSetup] = useState(true);
   const [needsSetup, setNeedsSetup] = useState(false);
@@ -78,6 +94,7 @@ export default function App() {
   const [snapPreview, setSnapPreview] = useState(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const activeActionRef = useRef(null);
+  const isMobile = useMediaQuery('(max-width: 767px)');
 
   useEffect(() => {
     const checkSetupStatus = async () => {
@@ -216,6 +233,14 @@ export default function App() {
         setActiveWindow(null);
     }
   }, [activeWindow]);
+
+  const focusWindow = useCallback((id) => {
+    if (activeWindow === id) return;
+
+    setWindows(prev => prev.map(w => w.id === id ? { ...w, zIndex: nextZIndex } : w));
+    setNextZIndex(nextZIndex + 1);
+    setActiveWindow(id);
+  }, [nextZIndex, activeWindow]);
   
   const openWindow = useCallback((id) => {
     if (id === 'admin-panel' && !isLoggedIn) {
@@ -232,35 +257,36 @@ export default function App() {
     
     const project = projects.find(p => p.id === id);
     if (project) {
-        const availableWidth = window.innerWidth;
+        const mainEl = document.querySelector('main');
+        if (!mainEl) return;
+        const rect = mainEl.getBoundingClientRect();
+        
         const newWindow = {
             id,
             title: project.name,
             icon: project.icon,
             zIndex: nextZIndex,
-            position: { x: Math.random() * (availableWidth * 0.1) + 20, y: Math.random() * 100 + 20 },
-            size: {
-              width: Math.min(availableWidth * 0.8, id === 'terminal' ? 700 : (id === 'login' ? 500 : (id === 'admin-panel' ? 1024 : 960))),
-              height: window.innerHeight * (id === 'terminal' ? 0.5 : (id === 'login' ? 0.6 : 0.7)),
-            },
-            isMaximized: false,
+            position: isMobile ? { x: 0, y: 0 } : { x: Math.random() * (rect.width * 0.1) + 20, y: Math.random() * 100 + 20 },
+            size: isMobile 
+              ? { width: rect.width, height: rect.height }
+              : {
+                  width: Math.min(rect.width * 0.8, id === 'terminal' ? 700 : (id === 'login' ? 500 : (id === 'admin-panel' ? 1024 : 960))),
+                  height: rect.height * (id === 'terminal' ? 0.5 : (id === 'login' ? 0.6 : 0.7)),
+                },
+            isMaximized: isMobile,
             preMaximizedState: null,
         };
         setWindows(prev => [...prev, newWindow]);
         setNextZIndex(nextZIndex + 1);
         setActiveWindow(id);
     }
-  }, [nextZIndex, windows, projects, isLoggedIn]);
-
-  const focusWindow = useCallback((id) => {
-    if (activeWindow === id) return;
-
-    setWindows(prev => prev.map(w => w.id === id ? { ...w, zIndex: nextZIndex } : w));
-    setNextZIndex(nextZIndex + 1);
-    setActiveWindow(id);
-  }, [nextZIndex, activeWindow]);
+    // FIX: Removed `openWindow` from its own dependency array to fix "used before declaration" error.
+    // The lint rule `exhaustive-deps` can sometimes incorrectly suggest this for recursive `useCallback` functions.
+  }, [nextZIndex, windows, projects, isLoggedIn, isMobile, focusWindow]);
 
   const toggleMaximize = useCallback((id) => {
+      if (isMobile) return;
+      
       setWindows(prev => prev.map(w => {
           if (w.id !== id) return w;
           
@@ -280,7 +306,7 @@ export default function App() {
               };
           }
       }));
-  }, []);
+  }, [isMobile]);
   
   const handleUpdateSettings = async (updatedSettings: any) => {
     const dataToSave = { ...updatedSettings };
@@ -326,6 +352,8 @@ export default function App() {
   }, [openWindow, closeWindow]);
 
   const handleActionStart = useCallback((id, action, e, direction = '') => {
+      if (isMobile) return;
+      
       focusWindow(id);
       const win = windows.find(w => w.id === id);
       if (!win || (action === 'drag' && win.isMaximized)) return;
@@ -337,7 +365,7 @@ export default function App() {
           startPos: { x: e.clientX, y: e.clientY },
           startRect: { ...win.position, ...win.size },
       };
-  }, [windows, focusWindow]);
+  }, [windows, focusWindow, isMobile]);
 
   useEffect(() => {
     const handleMouseMove = (e) => {
@@ -432,6 +460,31 @@ export default function App() {
     };
   }, [snapPreview]);
 
+  // Keep maximized/mobile windows fitting the screen on resize
+  useEffect(() => {
+    const handleResize = () => {
+        const mainEl = document.querySelector('main');
+        if (!mainEl) return;
+        const rect = mainEl.getBoundingClientRect();
+
+        setWindows(prev => prev.map(w => {
+            if (w.isMaximized) { // This will also cover mobile windows
+                return {
+                    ...w,
+                    position: { x: 0, y: 0 },
+                    size: { width: rect.width, height: rect.height },
+                };
+            }
+            return w;
+        }));
+    };
+
+    window.addEventListener('resize', handleResize);
+    handleResize(); // Initial call
+
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   const handleSetupComplete = () => {
     // Re-check status to load data properly
     setIsCheckingSetup(true);
@@ -480,7 +533,7 @@ export default function App() {
                     return true;
                     })}
                 />
-                {snapPreview && <div className="snap-preview" style={{ top: snapPreview.y, left: snapPreview.x, width: snapPreview.width, height: snapPreview.height }} />}
+                {snapPreview && !isMobile && <div className="snap-preview" style={{ top: snapPreview.y, left: snapPreview.x, width: snapPreview.width, height: snapPreview.height }} />}
                 {windows.map(win => {
                     const project = projects.find(p => p.id === win.id);
                     return (
@@ -493,6 +546,7 @@ export default function App() {
                         zIndex={win.zIndex}
                         isActive={activeWindow === win.id}
                         isMaximized={win.isMaximized}
+                        isMobile={isMobile}
                         onClose={closeWindow}
                         onFocus={focusWindow}
                         onMaximize={toggleMaximize}

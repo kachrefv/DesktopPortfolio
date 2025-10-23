@@ -10,6 +10,7 @@ interface WindowProps {
   zIndex: number;
   isActive: boolean;
   isMaximized: boolean;
+  isMobile: boolean;
   onClose: (id: string) => void;
   onFocus: (id: string) => void;
   onMaximize: (id: string) => void;
@@ -25,6 +26,7 @@ const Window: React.FC<WindowProps> = ({
   zIndex, 
   isActive, 
   isMaximized,
+  isMobile,
   onClose, 
   onFocus, 
   onMaximize,
@@ -69,15 +71,15 @@ const Window: React.FC<WindowProps> = ({
       )}
 
       <header
-        className={`window-drag-handle window-header flex items-center justify-between pl-3 pr-1 py-1 h-8 flex-shrink-0 ${isMaximized ? '' : 'rounded-t-lg'}`}
+        className={`${!isMaximized ? 'window-drag-handle' : ''} window-header flex items-center justify-between pl-3 pr-1 py-1 h-8 flex-shrink-0 ${isMaximized ? '' : 'rounded-t-lg'}`}
         onMouseDown={handleHeaderMouseDown}
-        onDoubleClick={() => onMaximize(id)}
+        onDoubleClick={isMobile ? undefined : () => onMaximize(id)}
       >
         <span className="text-sm font-medium select-none text-primary">{title}</span>
         <div className="window-controls flex items-center text-primary">
           <button className="window-controls-button p-2 rounded-sm hover:bg-black/10 dark:hover:bg-white/10 transition-colors" disabled><Minus size={14} /></button>
-          <button onClick={() => onMaximize(id)} className="window-controls-button p-2 rounded-sm hover:bg-black/10 dark:hover:bg-white/10 transition-colors">
-            {isMaximized ? <Copy size={14} /> : <Square size={14} />}
+          <button onClick={() => onMaximize(id)} className="window-controls-button p-2 rounded-sm hover:bg-black/10 dark:hover:bg-white/10 transition-colors" disabled={isMobile}>
+            {isMaximized && !isMobile ? <Copy size={14} /> : <Square size={14} />}
           </button>
           <button onClick={() => onClose(id)} className="window-controls-button p-2 rounded-sm hover:bg-red-500 hover:text-white transition-colors"><X size={14} /></button>
         </div>

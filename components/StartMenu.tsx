@@ -14,7 +14,7 @@ const StartMenu = ({ onOpen, onClose }) => {
 
     return (
         <div 
-            className="absolute bottom-full right-0 mb-2 md:bottom-full md:top-auto md:left-0 md:right-auto md:mb-2 w-96 bg-slate-200/90 dark:bg-slate-800/90 backdrop-blur-xl rounded-lg shadow-2xl border border-slate-300/50 dark:border-slate-700/50 overflow-hidden fade-in"
+            className="absolute bottom-full right-0 mb-2 md:bottom-full md:top-auto md:left-0 md:right-auto md:mb-2 w-[calc(100vw-3rem)] max-w-md md:w-96 bg-slate-200/90 dark:bg-slate-800/90 backdrop-blur-xl rounded-lg shadow-2xl border border-slate-300/50 dark:border-slate-700/50 overflow-hidden fade-in"
             style={{ animationDuration: '150ms' }}
         >
             <div className="p-4">

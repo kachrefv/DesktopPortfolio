@@ -28,36 +28,48 @@ const Desktop: React.FC<DesktopProps> = ({ onOpen, projects }) => {
   });
 
   useEffect(() => {
-    const taskbarHeight = 48;
-    const desktopHeight = window.innerHeight - taskbarHeight;
-    const maxIconsPerColumn = Math.floor((desktopHeight - PADDING * 2) / (ICON_HEIGHT + GAP_Y));
+    const calculatePositions = () => {
+      const mainEl = document.querySelector('main');
+      if (!mainEl) return;
 
-    setIconPositions(prevPositions => {
-      const newPositions = { ...prevPositions };
-      const positionedIds = Object.keys(prevPositions);
-      
-      const newItems = desktopItems.filter(item => !positionedIds.includes(item.id));
+      const desktopHeight = mainEl.clientHeight;
+      const maxIconsPerColumn = Math.floor((desktopHeight - PADDING * 2 + GAP_Y) / (ICON_HEIGHT + GAP_Y));
 
-      if (newItems.length === 0) {
-        // This check is important to prevent unnecessary re-renders or loops
-        // if projects array is updated but no new desktop icons are added.
-        return prevPositions;
-      }
-      
-      let currentItemIndex = positionedIds.length;
-      
-      newItems.forEach(project => {
-        const col = Math.floor(currentItemIndex / maxIconsPerColumn);
-        const row = currentItemIndex % maxIconsPerColumn;
-        newPositions[project.id] = {
-          x: PADDING + col * (ICON_WIDTH + GAP_X),
-          y: PADDING + row * (ICON_HEIGHT + GAP_Y),
-        };
-        currentItemIndex++;
+      setIconPositions(prevPositions => {
+        const allItemIds = new Set(desktopItems.map(p => p.id));
+        const validPrevPositions: { [key: string]: { x: number, y: number } } = {};
+        
+        // Filter out positions for projects that no longer exist
+        Object.keys(prevPositions).forEach(id => {
+            if (allItemIds.has(id)) {
+                validPrevPositions[id] = prevPositions[id];
+            }
+        });
+
+        const positionedIds = Object.keys(validPrevPositions);
+        const newItems = desktopItems.filter(item => !positionedIds.includes(item.id));
+        const newPositions = { ...validPrevPositions };
+        let currentItemIndex = positionedIds.length;
+        
+        newItems.forEach(project => {
+            if (maxIconsPerColumn > 0) { // Avoid division by zero
+                const col = Math.floor(currentItemIndex / maxIconsPerColumn);
+                const row = currentItemIndex % maxIconsPerColumn;
+                newPositions[project.id] = {
+                    x: PADDING + col * (ICON_WIDTH + GAP_X),
+                    y: PADDING + row * (ICON_HEIGHT + GAP_Y),
+                };
+                currentItemIndex++;
+            }
+        });
+        
+        return newPositions;
       });
-      
-      return newPositions;
-    });
+    };
+    
+    calculatePositions();
+    window.addEventListener('resize', calculatePositions);
+    return () => window.removeEventListener('resize', calculatePositions);
   }, [projects]);
 
   const handlePositionChange = useCallback((id, newPosition) => {
