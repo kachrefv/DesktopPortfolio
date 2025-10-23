@@ -28,7 +28,7 @@ const Taskbar = ({ openWindows, onFocus, activeWindow, onOpen, settings }) => {
   const initials = settings?.fullName?.split(' ').map(n => n[0]).join('').substring(0, 2) || 'OS';
 
   return (
-    <footer className="fixed top-0 left-0 h-screen w-12 p-2 border-r md:relative md:h-12 md:w-full md:p-0 md:px-2 md:border-r-0 md:border-t bg-slate-200/70 dark:bg-slate-900/50 backdrop-blur-lg flex flex-col md:flex-row items-center justify-between gap-2 border-slate-300/50 dark:border-slate-700/50 flex-shrink-0 z-[100000]">
+    <footer className="fixed bottom-4 right-4 w-12 p-2 border rounded-xl md:relative md:top-auto md:left-auto md:bottom-auto md:right-auto md:h-12 md:w-full md:p-0 md:px-2 md:rounded-none md:border-0 md:border-t bg-slate-200/70 dark:bg-slate-900/50 backdrop-blur-lg flex flex-col md:flex-row items-center justify-between gap-2 border-slate-300/50 dark:border-slate-700/50 flex-shrink-0 z-[100000]">
       <div className="flex flex-col md:flex-row items-center gap-2">
         <div ref={menuRef} className="relative">
              <button

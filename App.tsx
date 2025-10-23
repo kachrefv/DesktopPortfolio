@@ -232,8 +232,7 @@ export default function App() {
     
     const project = projects.find(p => p.id === id);
     if (project) {
-        const isMobile = window.innerWidth < 768;
-        const availableWidth = window.innerWidth - (isMobile ? 48 : 0);
+        const availableWidth = window.innerWidth;
         const newWindow = {
             id,
             title: project.name,
@@ -472,7 +471,7 @@ export default function App() {
                     className={`fixed inset-0 -z-10 transition-all duration-500 ${!settings?.wallpaperUrl ? 'gradient-bg' : ''}`}
                     style={desktopBackgroundStyle}
                 ></div>
-                <main className="flex-grow h-full w-full relative pl-12 md:pl-0">
+                <main className="flex-grow h-full w-full relative">
                 <Desktop 
                     onOpen={openWindow} 
                     projects={projects.filter(p => {
