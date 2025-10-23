@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Achref Riahi - Interactive Portfolio</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+      }
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+      :root {
+        --shadow-inactive: 0 25px 50px -12px rgba(0,0,0,0.3);
+        --shadow-active: 0 25px 50px -12px rgba(var(--color-accent-rgb), 0.3);
+      }
+      body {
+        font-family: 'Inter', sans-serif;
+        overflow: hidden; /* Prevent scrolling of the desktop */
+        background-color: var(--color-bg1);
+        color: var(--color-text-primary);
+      }
+       ::selection {
+        background-color: var(--color-accent);
+        color: white;
+      }
+      .gradient-bg {
+        background: linear-gradient(-45deg, var(--color-bg1), var(--color-bg2), var(--color-bg1), var(--color-bg2));
+        background-size: 400% 400%;
+        animation: gradient 15s ease infinite;
+      }
+      @keyframes gradient {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+      }
+      .fade-in {
+        animation: fadeInAnimation 1s ease-in-out forwards;
+        opacity: 0;
+      }
+      @keyframes fadeInAnimation {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+      .project-content-animation {
+        animation: projectContentFadeIn 300ms ease-out forwards;
+      }
+      @keyframes projectContentFadeIn {
+        from { opacity: 0; transform: scale(0.98); }
+        to { opacity: 1; transform: scale(1); }
+      }
+      .desktop-icon {
+        text-align: center;
+        color: var(--color-desktop-icon-text);
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.6);
+        padding: 8px;
+        border-radius: 6px;
+        cursor: pointer;
+        width: 90px;
+        height: 90px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        transition: transform 150ms ease-in-out, background-color 150ms ease-in-out;
+      }
+      .desktop-icon:hover, .desktop-icon:focus {
+        background-color: rgba(var(--color-desktop-icon-text-rgb), 0.1);
+        transform: scale(1.05);
+      }
+      .desktop-icon:active {
+        transform: scale(0.95);
+        transition-duration: 50ms;
+      }
+      .desktop-icon:focus {
+        outline: 1px solid rgba(var(--color-desktop-icon-text-rgb), 0.4);
+      }
+      .window-drag-handle {
+        cursor: move;
+      }
+      .snap-preview {
+        position: absolute;
+        background-color: rgba(var(--color-accent-rgb), 0.2);
+        border: 2px dashed var(--color-accent);
+        border-radius: 0.5rem;
+        z-index: 99998; /* High z-index but below the active window */
+        transition: all 150ms ease-out;
+        pointer-events: none;
+      }
+      /* Theming classes */
+      .text-primary { color: var(--color-text-primary); }
+      .text-secondary { color: var(--color-text-secondary); }
+      .text-accent { color: var(--color-accent); }
+      .bg-accent { background-color: var(--color-accent); }
+      .hover\:bg-accent-darker:hover { filter: brightness(0.9); }
+      
+      .window-container {
+        display: flex;
+        flex-direction: column;
+        position: absolute;
+        box-shadow: var(--shadow-inactive);
+        background-color: rgba(var(--color-window-bg-rgb), 0.8);
+        border: 1px solid rgba(var(--color-window-border-rgb), 0.3);
+        backdrop-filter: blur(12px);
+      }
+      .window-container.active {
+        box-shadow: var(--shadow-active);
+      }
+      .window-header {
+        background-color: rgba(var(--color-window-header-rgb), 0.5);
+        border-bottom: 1px solid rgba(var(--color-window-border-rgb), 0.3);
+      }
+      .window-main-content {
+        background-color: var(--color-window-bg);
+      }
+
+       /* Terminal styles */
+      .terminal {
+        font-family: 'Fira Code', monospace;
+      }
+      .terminal-input-cursor {
+        display: inline-block;
+        width: 8px; /* Width of the cursor */
+        height: 1.2em;
+        background-color: currentColor;
+        animation: blink 1s step-end infinite;
+        margin-left: 2px;
+      }
+      .terminal-input:focus {
+        outline: none;
+      }
+      @keyframes blink {
+        from, to { opacity: 1; }
+        50% { opacity: 0; }
+      }
+    </style>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script type="importmap">
+{
+  "imports": {
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.546.0",
+    "react-router-dom": "https://aistudiocdn.com/react-router-dom@^7.9.4"
+  }
+}
+</script>
+<link rel="stylesheet" href="/index.css">
+</head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
+  </body>
+</html>
